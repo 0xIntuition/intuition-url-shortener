@@ -17,13 +17,26 @@ tripleRoute.get('/:id', async (c) => {
   // Fetch data from GraphQL
   const data = await fetchTerm(id)
 
-  // Check if triple data exists
-  if (!data?.terms?.[0]?.triple) {
+  // Check for no results
+  if (!data?.terms || data.terms.length === 0) {
     console.log(`No triple found for ID: ${id}`)
     return c.html(<ErrorPage />, 404)
   }
 
-  const triple = data.terms[0].triple
+  // Check for ambiguous match (multiple results)
+  if (data.terms.length > 1) {
+    console.log(`Ambiguous match: ${data.terms.length} results found for ID: ${id}`)
+    return c.html(<ErrorPage />, 404)
+  }
+
+  // Check for wrong type (atom instead of triple)
+  if (!data.terms[0].triple) {
+    console.log(`Wrong type: Found atom instead of triple for ID: ${id}`)
+    return c.html(<ErrorPage />, 404)
+  }
+
+  const term = data.terms[0]
+  const triple = term.triple!
 
   // Construct title from subject-predicate-object
   const subjectLabel = triple.subject.label || 'Unknown'
@@ -37,8 +50,8 @@ tripleRoute.get('/:id', async (c) => {
     triple.predicate.value?.json_object?.description ||
     DEFAULT_DESCRIPTION
 
-  const url = `https://portal.intuition.systems/explore/triple/${id}`
-  const imageUrl = `https://portal.intuition.systems/resources/triple-image?id=${id}`
+  const url = `https://portal.intuition.systems/explore/triple/${term.id}`
+  const imageUrl = `https://portal.intuition.systems/resources/triple-image?id=${term.id}`
 
   console.log(`Rendering triple page for: ${title}`)
 

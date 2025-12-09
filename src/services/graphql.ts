@@ -40,7 +40,7 @@ const client = new GraphQLClient(GRAPHQL_ENDPOINT)
 
 /**
  * Fetch term data (atom or triple) by ID from Intuition GraphQL API
- * @param id - The term ID to fetch (will be wrapped with % for LIKE query)
+ * @param id - The term ID to fetch (will be prefix-matched with trailing % for LIKE query)
  * @returns GraphQL query result or null if error occurs
  */
 export async function fetchTerm(id: string): Promise<GetTermQuery | null> {
@@ -48,7 +48,7 @@ export async function fetchTerm(id: string): Promise<GetTermQuery | null> {
     // Use LIKE query with wildcards as per plans/query.graphql
     const data = await client.request<GetTermQuery, GetTermQueryVariables>(
       GET_TERM_QUERY,
-      { id: `%${id}%` }
+      { id: `${id}%` }
     )
 
     console.log(`GraphQL query successful for ID: ${id}`)

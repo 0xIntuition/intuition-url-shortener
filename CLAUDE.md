@@ -30,18 +30,21 @@ npm start            # Run production server from dist/
 1. User hits `/atom/:id` or `/triple/:id`
 2. Route handler (`src/routes/atom.tsx` or `src/routes/triple.tsx`) calls `fetchTerm(id)`
 3. `fetchTerm` in `src/services/graphql.ts` queries Intuition's GraphQL API
-4. GraphQL query uses LIKE operator: `{ id: { _like: "%${id}%" } }`
-5. Route extracts metadata (title, description) from GraphQL response with fallbacks
-6. Route renders JSX component (AtomPage/TriplePage) with meta tags
-7. HTML includes three redirect methods (meta refresh, JavaScript, visible link)
-8. Returns 404 error page if no data found
+4. GraphQL query uses LIKE operator with prefix matching: `{ id: { _like: "${id}%" } }`
+5. If query returns multiple results, return 404 (ambiguous match)
+6. Route extracts metadata (title, description) from GraphQL response with fallbacks
+7. Route renders JSX component (AtomPage/TriplePage) with meta tags
+8. HTML includes three redirect methods (meta refresh, JavaScript, visible link)
+9. Returns 404 error page if no data found
 
 ### Key Design Decisions
 
-**GraphQL ID Wrapping**: The query wraps IDs with `%` wildcards for LIKE operator matching:
+**GraphQL ID Prefix Matching**: The query uses prefix matching with trailing wildcard for LIKE operator:
 ```typescript
-{ id: `%${id}%` }  // Wrapped in fetchTerm()
+{ id: `${id}%` }  // Prefix match in fetchTerm()
 ```
+
+This enables partial ID matching (e.g., `/atom/0x8c486fd3377` matches full ID starting with that prefix). If multiple terms match the prefix, a 404 is returned to prevent ambiguity.
 
 **Meta Tag Priority**: The three-layer redirect strategy ensures social media crawlers see meta tags:
 1. `<meta http-equiv="refresh">` - Browser fallback
@@ -49,6 +52,8 @@ npm start            # Run production server from dist/
 3. Visible link - Last resort for users
 
 **Error Handling**: Returns `null` from `fetchTerm` on errors (no throwing), then routes return 404 pages. This treats missing data as valid 404 scenarios rather than 500 errors.
+
+**Ambiguity Prevention**: Routes return 404 if the GraphQL query returns more than one result. This ensures that partial IDs must be unique enough to match exactly one term.
 
 **Fallback Values**: Routes use fallbacks for nullable GraphQL fields:
 - Title: `atom.label || 'Intuition'`
