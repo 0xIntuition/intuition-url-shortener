@@ -1,22 +1,24 @@
 # Intuition URL Shortener
 
-A lightweight URL shortening service built with [Hono](https://hono.dev/) that serves HTML pages with Open Graph and Twitter Card meta tags for proper social media link unfurling. The service fetches data from the Intuition protocol's GraphQL API and dynamically generates SEO-optimized pages for atoms and triples.
+A lightweight URL shortening service built with [Hono](https://hono.dev/) that provides a web interface for creating shortened links and serves HTML pages with Open Graph and Twitter Card meta tags for proper social media link unfurling. The service fetches data from the Intuition protocol's GraphQL API and dynamically generates SEO-optimized pages for atoms and triples with automatic type detection.
 
 ## Features
 
 - 🚀 **Fast & Lightweight**: Built with Hono framework (5KB)
+- 📝 **Web Interface**: User-friendly form for creating shortened URLs
 - 🔗 **Social Media Optimized**: Proper Open Graph and Twitter Card meta tags
 - 🎨 **Dynamic Content**: Meta tags populated from GraphQL data
+- 🤖 **Auto Type Detection**: Automatically detects atoms vs triples
 - 🔄 **Auto-redirect**: Seamless redirect to Intuition Portal
 - 📦 **TypeScript**: Full type safety with TypeScript
 - ☁️ **Deploy Ready**: Configured for Render.com deployment
 
 ## Routes
 
-- `GET /` - Service info
+- `GET /` - URL shortener form homepage
 - `GET /health` - Health check endpoint
-- `GET /atom/:id` - Display atom with social meta tags
-- `GET /triple/:id` - Display triple with social meta tags
+- `POST /short` - Create shortened URL (accepts form data with portal URL)
+- `GET /:id` - Unified redirect for atoms and triples with social meta tags
 
 ## Tech Stack
 
@@ -68,11 +70,16 @@ The server will start at `http://localhost:3000` with hot reload enabled.
 ### Testing
 
 Visit these URLs to test:
+- Homepage form: `http://localhost:3000/`
 - Health check: `http://localhost:3000/health`
-- Atom page: `http://localhost:3000/atom/{atom-id}`
-- Triple page: `http://localhost:3000/triple/{triple-id}`
+- Direct atom link: `http://localhost:3000/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
+- Direct triple link: `http://localhost:3000/{triple-id}`
 
-Example atom ID from the plans: `0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
+To test the URL shortener form:
+1. Visit `http://localhost:3000/`
+2. Paste a portal URL (e.g., `https://portal.intuition.systems/explore/atom/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`)
+3. Click "Shorten URL"
+4. View the preview and copy the shortened link
 
 ## Building for Production
 
@@ -123,20 +130,24 @@ intuition-url-shortener/
 │   ├── index.ts                 # Main Hono application
 │   ├── server.ts                # Node.js server entry point
 │   ├── routes/
-│   │   ├── atom.tsx            # /atom/:id handler
-│   │   ├── triple.tsx          # /triple/:id handler
+│   │   ├── home.tsx            # GET / - Homepage form
+│   │   ├── shortener.tsx       # POST /short - Form handler
+│   │   ├── term.tsx            # GET /:id - Unified redirect
 │   │   └── error.tsx           # 404 handler
 │   ├── services/
 │   │   └── graphql.ts          # GraphQL client & queries
 │   ├── components/
 │   │   ├── MetaTags.tsx        # Meta tag component
-│   │   ├── AtomPage.tsx        # Atom HTML template
-│   │   ├── TriplePage.tsx      # Triple HTML template
+│   │   ├── HomePage.tsx        # URL shortener form
+│   │   ├── PreviewPage.tsx     # Preview with copy button
+│   │   ├── RedirectPage.tsx    # Unified redirect template
 │   │   └── ErrorPage.tsx       # Error page template
 │   ├── types/
 │   │   └── graphql.ts          # GraphQL response types
 │   └── utils/
-│       └── env.ts              # Environment config
+│       ├── env.ts              # Environment config
+│       ├── metadata.ts         # Type detection & extraction
+│       └── urlParser.ts        # URL parsing utility
 ├── plans/                       # Reference files
 │   ├── example.html
 │   └── query.graphql
@@ -150,12 +161,26 @@ intuition-url-shortener/
 
 ## How It Works
 
-1. User visits `/atom/:id` or `/triple/:id`
+### URL Shortening Flow
+
+1. User visits `/` and sees the URL shortener form
+2. User pastes an Intuition Portal URL
+3. Form submits to `/short` which extracts the ID using regex patterns
+4. Server queries Intuition's GraphQL API for the term data
+5. Server displays a preview page showing:
+   - Share card preview (title, description, image)
+   - Shortened URL (e.g., `http://localhost:3000/0x...`)
+   - Copy button for easy sharing
+
+### Redirect Flow
+
+1. User or social media bot visits shortened URL (e.g., `/:id`)
 2. Server queries Intuition's GraphQL API for the term data
-3. Server extracts metadata (title, description) from the response
-4. Server renders HTML with Open Graph and Twitter Card meta tags
-5. Social media crawlers see the meta tags for link previews
-6. User is automatically redirected to the full portal URL
+3. Server automatically detects whether it's an atom or triple
+4. Server extracts appropriate metadata (title, description)
+5. Server renders HTML with Open Graph and Twitter Card meta tags
+6. Social media crawlers see the meta tags for link previews
+7. User is automatically redirected to the full portal URL
 
 ## Meta Tag Strategy
 

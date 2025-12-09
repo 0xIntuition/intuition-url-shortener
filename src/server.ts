@@ -5,8 +5,9 @@ import { PORT } from './utils/env.js'
 
 console.log(`🚀 Server starting on port ${PORT}`)
 console.log(`📍 Health check: http://localhost:${PORT}/health`)
-console.log(`📍 Atom route: http://localhost:${PORT}/atom/:id`)
-console.log(`📍 Triple route: http://localhost:${PORT}/triple/:id`)
+console.log(`📍 Homepage: http://localhost:${PORT}/`)
+console.log(`📍 Term route: http://localhost:${PORT}/:id`)
+console.log(`📍 Shortener: POST http://localhost:${PORT}/short`)
 
 serve({
   fetch: app.fetch,

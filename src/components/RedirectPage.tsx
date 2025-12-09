@@ -1,9 +1,9 @@
-// HTML page template for atom display
+// HTML page template for redirecting with meta tags
 import type { FC } from 'hono/jsx'
 import type { MetaData } from '../types/graphql.js'
 import { MetaTags } from './MetaTags.js'
 
-export const AtomPage: FC<MetaData> = (props) => {
+export const RedirectPage: FC<MetaData> = (props) => {
   return (
     <html lang="en" data-theme="dark">
       <head>
