@@ -1,0 +1,35 @@
+{
+  "name": "intuition-url-shortener",
+  "version": "1.0.0",
+  "description": "URL shortening service for Intuition protocol with social media meta tags",
+  "main": "dist/server.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "hono",
+    "url-shortener",
+    "intuition",
+    "graphql"
+  ],
+  "author": "0xIntuition",
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^4.7.0",
+    "@hono/node-server": "^1.13.0",
+    "graphql-request": "^7.1.2",
+    "graphql": "^16.9.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.1",
+    "tsx": "^4.19.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
