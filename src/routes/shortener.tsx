@@ -5,6 +5,7 @@ import { extractIdFromUrl } from '../utils/urlParser.js'
 import { extractMetadata } from '../utils/metadata.js'
 import { PreviewPage } from '../components/PreviewPage.js'
 import { ErrorPage } from '../components/ErrorPage.js'
+import { hexToBase62 } from '../utils/base62.js'
 
 export const shortenerRoute = new Hono()
 
@@ -111,13 +112,17 @@ shortenerRoute.post('/', async (c) => {
     return c.html(<ErrorPage />, 404)
   }
 
-  // Generate short URL using the full term ID
+  // Encode hex ID to base62
+  const base62Id = hexToBase62(term.id)
+  console.log(`Encoded hex ${term.id} → base62 ${base62Id}`)
+
+  // Generate short URL using base62 ID
   const baseUrl = new URL(c.req.url).origin
-  const shortUrl = `${baseUrl}/${term.id}`
+  const shortUrl = `${baseUrl}/${base62Id}`
 
   // Determine type for logging
   const termType = term.atom ? 'atom' : 'triple'
-  console.log(`Generated short URL for ${termType}: ${shortUrl}`)
+  console.log(`Generated base62 short URL for ${termType}: ${shortUrl}`)
 
   return c.html(
     <PreviewPage
