@@ -10,14 +10,34 @@ export const HomePage: FC = () => {
         <title>Intuition URL Shortener</title>
         <link rel="stylesheet" href="/styles/output.css" />
       </head>
-      <body className="flex items-center justify-center min-h-screen p-8 sm:p-6">
+      <body className="flex items-center justify-center min-h-screen p-8 sm:p-6 bg-gradient-radial">
         <div className="container max-w-[540px] w-full animate-fade-in-up">
-          <h1 className="title-accent text-3xl sm:text-2xl font-bold leading-tight text-center m-0 mb-4 text-text-primary tracking-tight">
-            Shorten Intuition Links
+          <h1 className="title-accent text-4xl sm:text-2xl font-bold leading-tight text-center m-0 mb-4 text-text-primary tracking-tighter">
+            Compress Blockchain IDs Into Shareable Links
           </h1>
-          <p className="text-lg sm:text-base leading-normal text-text-secondary text-center m-0 mb-20 sm:mb-12 font-normal">
-            Transform long blockchain IDs into compact, shareable URLs
+          <p className="text-lg sm:text-base leading-normal text-text-secondary text-center m-0 mb-6 font-normal">
+            256-bit identifiers → from 3-character URLs. No database, just math.
           </p>
+          <div className="flex items-center justify-center gap-4 text-sm text-text-tertiary mb-16 sm:mb-10 flex-wrap">
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-success" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.3337 4L6.00033 11.3333L2.66699 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              95% compression
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-success" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.3337 4L6.00033 11.3333L2.66699 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              Zero collisions
+            </span>
+            <span className="flex items-center gap-1.5">
+              <svg className="w-4 h-4 text-success" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.3337 4L6.00033 11.3333L2.66699 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              Open source
+            </span>
+          </div>
 
           <form method="get" action="/short" role="search" aria-label="URL shortener form" className="flex flex-col gap-6">
             <div className="flex flex-col gap-3">
@@ -33,7 +53,7 @@ export const HomePage: FC = () => {
                 placeholder="portal.intuition.systems/explore/atom/0x..."
                 required
                 autofocus
-                className="w-full p-4 min-h-[52px] text-base bg-bg-input border border-border-base rounded-md text-text-primary transition-all duration-base ease-out-custom placeholder:text-text-tertiary hover:border-border-hover hover:bg-bg-hover focus:outline-none focus:border-brand-primary focus:shadow-focus focus:scale-[1.005] focus:bg-bg-base appearance-none"
+                className="w-full p-4 min-h-[52px] text-base bg-bg-input border border-border-base rounded-md text-text-primary transition-all duration-base ease-out-custom placeholder:text-text-tertiary shadow-inner hover:border-border-hover hover:bg-bg-hover focus:outline-none focus:border-brand-primary focus:shadow-focus-refined focus:bg-bg-base appearance-none"
               />
             </div>
             <button

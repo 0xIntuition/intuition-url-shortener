@@ -7,6 +7,7 @@ import type { GetTermQuery, GetTermQueryVariables } from '../types/graphql.js'
 const GET_TERM_QUERY = `
   query GetTerm($id: String!) {
     terms(
+      limit: 5
       order_by: [ {
         created_at: asc
       }]

@@ -7,25 +7,36 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Backgrounds
-        'bg-base': '#0f0f0f',
-        'bg-elevated': '#1a1a1a',
-        'bg-card': '#1f1f1f',
+        // Backgrounds - refined for better depth
+        'bg-base': '#0a0a0a',
+        'bg-elevated': '#141414',
+        'bg-card': '#1a1a1a',
         'bg-input': '#161616',
         'bg-hover': '#242424',
-        'bg-code': '#161616',
+        'bg-code': '#1a1a1a',
 
-        // Text
-        'text-primary': '#fafafa',
+        // Text - refined hierarchy
+        'text-primary': '#f5f5f5',
         'text-secondary': '#a1a1a1',
-        'text-tertiary': '#6f6f6f',
+        'text-tertiary': '#737373',
         'text-code': '#d4d4d4',
 
-        // Brand & Status
+        // Brand - refined blue/purple palette with shades
+        'brand-blue-light': '#60a5fa',
+        'brand-blue': '#3b82f6',
+        'brand-blue-deep': '#2563eb',
+        'brand-purple-light': '#a78bfa',
+        'brand-purple': '#8b5cf6',
+        'brand-purple-deep': '#7c3aed',
+
+        // Legacy aliases for compatibility
         'brand-primary': '#3b82f6',
         'brand-secondary': '#8b5cf6',
+
+        // Status colors
         'success': '#10b981',
         'success-dark': '#059669',
+        'warning': '#f59e0b',
 
         // Borders
         'border-base': '#2a2a2a',
@@ -38,7 +49,8 @@ export default {
       },
       fontSize: {
         '3xl': '2rem',
-        '4xl': '2.5rem',
+        '4xl': '4rem',
+        '5xl': '4.5rem',
       },
       borderRadius: {
         md: '0.5rem',
@@ -49,11 +61,19 @@ export default {
         md: '0 4px 6px rgba(0, 0, 0, 0.3)',
         lg: '0 10px 15px rgba(0, 0, 0, 0.4)',
         focus: '0 0 0 3px rgba(59, 130, 246, 0.15)',
+        'card': '0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3)',
+        'card-hover': '0 8px 24px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.4)',
+        'glow-blue': '0 0 20px rgba(59, 130, 246, 0.1)',
+        'glow-purple': '0 0 20px rgba(139, 92, 246, 0.1)',
+        'focus-refined': '0 0 0 3px rgba(59, 130, 246, 0.2), 0 0 0 1px rgba(59, 130, 246, 0.4)',
       },
       transitionDuration: {
         fast: '150ms',
         base: '200ms',
         slow: '300ms',
+      },
+      letterSpacing: {
+        'tighter': '-0.02em',
       },
       transitionTimingFunction: {
         'ease-out-custom': 'cubic-bezier(0, 0, 0.2, 1)',

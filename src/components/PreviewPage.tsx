@@ -23,8 +23,8 @@ export const PreviewPage: FC<PreviewPageProps> = (props) => {
           }
         `}</style>
       </head>
-      <body className="p-8 sm:p-6 min-h-screen">
-        <div className="container max-w-[640px] mx-auto animate-fade-in-up">
+      <body className="p-8 sm:p-6 min-h-screen bg-gradient-radial">
+        <div className="container max-w-[720px] mx-auto animate-fade-in-up">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-success-10 border border-success-30 rounded-md text-success text-sm font-medium mx-auto mb-16 animate-fade-in-up">
             <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
               <path d="M13.3337 4L6.00033 11.3333L2.66699 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -33,29 +33,30 @@ export const PreviewPage: FC<PreviewPageProps> = (props) => {
           </div>
 
           <div className="mb-8 animate-fade-in-up" style="animation-delay: 100ms; animation-fill-mode: both;">
-            <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-4">Preview</div>
-            <div className="bg-bg-card border border-border-base rounded-lg overflow-hidden transition-all duration-base ease-out-custom hover:-translate-y-0.5 hover:shadow-lg hover:border-border-hover">
+            <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-4">Share Preview</div>
+            <div className="bg-bg-card border border-border-base rounded-lg overflow-hidden shadow-card transition-all duration-base ease-out-custom hover:shadow-card-hover hover:border-border-hover">
               <img src={props.imageUrl} alt={props.title} className="w-full h-auto block bg-bg-elevated border-b border-border-base" />
               <div className="p-6 sm:p-5">
-                <h1 className="text-xl font-semibold leading-tight m-0 mb-3 text-text-primary">{props.title}</h1>
+                <h1 className="text-xl font-bold leading-tight m-0 mb-3 text-text-primary tracking-tight">{props.title}</h1>
                 <p className="text-base leading-normal m-0 text-text-secondary">{props.description}</p>
               </div>
             </div>
           </div>
 
           <div className="mb-0 animate-fade-in-up" style="animation-delay: 200ms; animation-fill-mode: both;">
+            <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-3">Shortened URL</div>
             <div className="flex gap-3 items-stretch sm:flex-col">
               <input
                 type="text"
                 id="short-url"
-                className="flex-1 p-4 min-h-[52px] text-base bg-bg-input border border-border-base rounded-md text-brand-primary font-medium transition-all duration-base ease-out-custom select-all focus:outline-none focus:border-brand-primary focus:shadow-focus focus:bg-bg-base"
+                className="flex-1 p-4 min-h-[52px] text-lg bg-bg-card border border-border-base rounded-md text-gradient font-semibold transition-all duration-base ease-out-custom select-all shadow-card focus:outline-none focus:border-brand-primary focus:shadow-focus-refined focus:bg-bg-elevated"
                 value={props.shortUrl}
                 readonly
                 aria-label="Your shortened URL"
                 aria-readonly="true"
               />
               <button
-                className="btn-gradient-hover px-6 py-4 min-h-[52px] text-base font-semibold bg-brand-primary border-none rounded-md text-white cursor-pointer transition-all duration-fast ease-out-custom whitespace-nowrap hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:shadow-focus focus-visible:shadow-md active:scale-95 sm:w-full"
+                className="btn-gradient-hover px-6 py-4 min-h-[52px] text-base font-semibold bg-brand-primary border-none rounded-md text-white cursor-pointer transition-all duration-fast ease-out-custom whitespace-nowrap hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:shadow-focus-refined active:scale-95 sm:w-full"
                 id="copy-btn"
                 onclick="copyToClipboard()"
                 aria-label="Copy shortened URL to clipboard"
@@ -68,14 +69,14 @@ export const PreviewPage: FC<PreviewPageProps> = (props) => {
           <div className="flex gap-4 justify-center mt-12 pt-8 border-t border-border-base animate-fade-in-up sm:flex-col sm:gap-3" style="animation-delay: 300ms; animation-fill-mode: both;">
             <a
               href="/"
-              className="px-6 py-3 min-h-[48px] text-base font-medium bg-transparent border border-border-base rounded-md text-text-secondary no-underline inline-flex items-center justify-center transition-all duration-fast ease-out-custom hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary-5 focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 sm:w-full"
+              className="px-6 py-3 min-h-[48px] text-base font-medium bg-transparent border border-border-base rounded-md text-text-secondary no-underline inline-flex items-center justify-center transition-all duration-fast ease-out-custom hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary-5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 sm:w-full"
               aria-label="Create another shortened URL"
             >
               Create Another Link
             </a>
             <a
               href={props.shortUrl}
-              className="px-6 py-3 min-h-[48px] text-base font-medium bg-transparent border border-border-base rounded-md text-text-secondary no-underline inline-flex items-center justify-center transition-all duration-fast ease-out-custom hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary-5 focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 sm:w-full"
+              className="px-6 py-3 min-h-[48px] text-base font-medium bg-transparent border border-border-base rounded-md text-text-secondary no-underline inline-flex items-center justify-center transition-all duration-fast ease-out-custom hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary-5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 sm:w-full"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Preview shortened link in Portal"
