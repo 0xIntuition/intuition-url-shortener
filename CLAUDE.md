@@ -23,16 +23,24 @@ npm start            # Run production server from dist/
 ```
 
 ### Testing Locally
+
+**Web Interface:**
 - Health check: `http://localhost:3000/health`
 - Homepage (URL shortener form): `http://localhost:3000/`
+- About page: `http://localhost:3000/about`
 - Test atom redirect (hex): `http://localhost:3000/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
 - Test atom redirect (base62): `http://localhost:3000/9LE`
 - Test partial hex ID: `http://localhost:3000/0x8c486fd3377`
 - Test triple redirect: `http://localhost:3000/{triple-id}`
 - Test list redirect: `http://localhost:3000/8RP/9Vk`
 - Test 404: `http://localhost:3000/invalid-id`
-- Test form submission: POST to `http://localhost:3000/short` with form data `url=...`
-- Test list form submission: POST with `url=https://portal.intuition.systems/explore/list/0x7ec36d201c842dc787b45cb5bb753bea4cf849be3908fb1b0a7d067c3c3cc1f5-0x8ed4f8de1491e074fa188b5c679ee45c657e0802c186e3bb45a4d3f3faa6d426`
+- Test form submission: GET with query param `http://localhost:3000/short?url=...`
+
+**API Endpoints:**
+- Term API (hex): `curl http://localhost:3000/api/short/term/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
+- Term API (base62): `curl http://localhost:3000/api/short/term/9LE`
+- List API (hex): `curl "http://localhost:3000/api/short/list/0x7ec36d201c842dc787b45cb5bb753bea4cf849be3908fb1b0a7d067c3c3cc1f5/0x8ed4f8de1491e074fa188b5c679ee45c657e0802c186e3bb45a4d3f3faa6d426"`
+- List API (base62): `curl http://localhost:3000/api/short/list/8RP/9Vk`
 
 ## Architecture
 
@@ -96,6 +104,26 @@ npm start            # Run production server from dist/
 8. Route generates redirect URL with full hex IDs: `https://portal.intuition.systems/explore/list/{fullPredicateId}-{fullObjectId}`
 9. Route renders `RedirectPage` with list image and redirect URL
 10. User is redirected to full list page on portal
+
+**API Flow - Term Shortening** (`/api/short/term/:termId`):
+1. User hits `/api/short/term/:termId` with hex or base62 ID
+2. Route handler (`src/routes/api.tsx`) calls `shortenTermId(termId, baseUrl)` from shared utility
+3. Utility detects ID format and decodes if base62
+4. Utility fetches term from GraphQL (takes first result, no uniqueness check)
+5. Utility finds shortest prefix and encodes to base62
+6. Utility returns structured result with short URL
+7. Route handler returns plain text short URL (e.g., `http://localhost:3000/9LE`)
+8. Returns 404 plain text error if term not found
+
+**API Flow - List Shortening** (`/api/short/list/:predicateId/:objectId`):
+1. User hits `/api/short/list/:predicateId/:objectId` with hex or base62 IDs
+2. Route handler calls `shortenListIds(predicateId, objectId, baseUrl)` from shared utility
+3. Utility detects formats and decodes if base62
+4. Utility fetches both terms in parallel (takes first result for each)
+5. Utility finds shortest prefixes and encodes both to base62
+6. Utility returns structured result with short URL
+7. Route handler returns plain text short URL (e.g., `http://localhost:3000/8RP/9Vk`)
+8. Returns 404 plain text error if either term not found
 
 ### Key Design Decisions
 
@@ -174,7 +202,9 @@ This enables partial ID matching (e.g., `/0x8c486fd3377` matches full IDs starti
 
 **Routes** (`src/routes/`): Each route file exports a Hono app instance and handles a specific path pattern.
 - `home.tsx` - Homepage with URL shortener form (GET `/`)
-- `shortener.tsx` - Form submission handler (POST `/short`) - handles atoms, triples, and lists
+- `shortener.tsx` - Form submission handler (GET `/short`) - handles atoms, triples, and lists
+- `api.tsx` - API endpoints returning plain text shortened URLs (GET `/api/short/term/:termId`, GET `/api/short/list/:predicateTermId/:objectTermId`)
+- `about.tsx` - How it works page (GET `/about`)
 - `list.tsx` - List redirect handler (GET `/:predicateId/:objectId`) - registered before term route
 - `term.tsx` - Unified redirect handler for atoms and triples (GET `/:id`)
 - `error.tsx` - 404 error handler
@@ -183,10 +213,12 @@ This enables partial ID matching (e.g., `/0x8c486fd3377` matches full IDs starti
 - `HomePage.tsx` - URL shortener form interface
 - `PreviewPage.tsx` - Preview page showing share card and shortened URL
 - `RedirectPage.tsx` - Unified redirect page (replaces AtomPage/TriplePage)
+- `AboutPage.tsx` - How it works page explaining the algorithm
 - `MetaTags.tsx` - Shared meta tags component
 - `ErrorPage.tsx` - 404 error page
 
 **Utils** (`src/utils/`): Utility functions for common operations.
+- `shortener.ts` - Shared URL shortening logic for both web form and API endpoints (`shortenTermId()`, `shortenListIds()`)
 - `prefixFinder.ts` - Shortest prefix algorithm with smart character comparison to minimize API calls
 - `metadata.ts` - Extracts metadata from terms with automatic type detection
 - `urlParser.ts` - Parses IDs from various URL formats
@@ -287,3 +319,30 @@ Note: Platforms cache meta tags aggressively. Use these tools to refresh cache.
 - `MIN_PREFIX_LEN` (default: 2) - Starting hex prefix length
 - `INCREMENT` (default: 2) - How much to increase prefix length on collisions
 - `MAX_ATTEMPTS` (default: 32) - Maximum API calls before falling back to full ID
+
+**Adding new API endpoints**:
+1. Create or modify route file in `src/routes/api.tsx`
+2. Use shared utilities from `src/utils/shortener.ts` for shortening logic
+3. Return plain text responses using `c.text()`
+4. Handle errors gracefully with appropriate status codes (404, 500)
+
+## API Endpoints
+
+The service provides REST API endpoints for programmatic access:
+
+**Term Shortening**: `GET /api/short/term/:termId`
+- Accepts: Hex IDs (full or partial) or base62 IDs
+- Returns: Plain text shortened URL
+- Example: `curl http://localhost:3000/api/short/term/0x8c486fd3377` → `http://localhost:3000/9LE`
+- Error: `Error: Term not found` (404)
+
+**List Shortening**: `GET /api/short/list/:predicateTermId/:objectTermId`
+- Accepts: Hex IDs or base62 IDs for both parameters
+- Returns: Plain text shortened list URL
+- Example: `curl http://localhost:3000/api/short/list/8RP/9Vk` → `http://localhost:3000/8RP/9Vk`
+- Error: `Error: One or both terms not found` (404)
+
+**Key Differences from Web Form**:
+- **No uniqueness validation**: API endpoints follow redirect behavior (take first result) rather than form behavior (404 on ambiguous matches)
+- **Plain text response**: Returns URL as `text/plain` instead of HTML
+- **Programmatic access**: Designed for integration with other services

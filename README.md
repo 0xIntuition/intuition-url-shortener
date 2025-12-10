@@ -16,11 +16,17 @@ A lightweight URL shortening service built with [Hono](https://hono.dev/) that p
 
 ## Routes
 
+### Web Interface
 - `GET /` - URL shortener form homepage
+- `GET /about` - How it works page
 - `GET /health` - Health check endpoint
-- `POST /short` - Create shortened URL (accepts form data with portal URL)
+- `GET /short` - Create shortened URL (accepts URL query parameter)
 - `GET /:predicateId/:objectId` - List redirect with social meta tags
 - `GET /:id` - Unified redirect for atoms and triples with social meta tags
+
+### API Endpoints
+- `GET /api/short/term/:termId` - Returns shortened URL as plain text for a single term (atom or triple)
+- `GET /api/short/list/:predicateTermId/:objectTermId` - Returns shortened URL as plain text for lists
 
 ## Tech Stack
 
@@ -137,7 +143,9 @@ intuition-url-shortener/
 │   ├── server.ts                # Node.js server entry point
 │   ├── routes/
 │   │   ├── home.tsx            # GET / - Homepage form
-│   │   ├── shortener.tsx       # POST /short - Form handler
+│   │   ├── shortener.tsx       # GET /short - Form handler
+│   │   ├── api.tsx             # API endpoints (plain text responses)
+│   │   ├── about.tsx           # GET /about - How it works page
 │   │   ├── list.tsx            # GET /:predicateId/:objectId - List redirect
 │   │   ├── term.tsx            # GET /:id - Unified redirect
 │   │   └── error.tsx           # 404 handler
@@ -148,6 +156,7 @@ intuition-url-shortener/
 │   │   ├── HomePage.tsx        # URL shortener form
 │   │   ├── PreviewPage.tsx     # Preview with copy button
 │   │   ├── RedirectPage.tsx    # Unified redirect template
+│   │   ├── AboutPage.tsx       # How it works page
 │   │   └── ErrorPage.tsx       # Error page template
 │   ├── types/
 │   │   └── graphql.ts          # GraphQL response types
@@ -157,7 +166,8 @@ intuition-url-shortener/
 │       ├── urlParser.ts        # URL parsing utility
 │       ├── prefixFinder.ts     # Shortest prefix algorithm
 │       ├── base62.ts           # Base62 encoding/decoding
-│       └── idDetector.ts       # ID format detection
+│       ├── idDetector.ts       # ID format detection
+│       └── shortener.ts        # Shared shortening logic for API/web
 ├── plans/                       # Reference files
 │   ├── example.html
 │   └── query.graphql
@@ -245,6 +255,57 @@ The service uses three redirect methods to ensure compatibility:
 3. **Visible link**: Clickable link as last resort
 
 This ensures social media crawlers can read meta tags before the redirect executes.
+
+## API Usage
+
+The URL shortener provides REST API endpoints that return plain text shortened URLs for programmatic access.
+
+### Shorten a Term (Atom or Triple)
+
+```bash
+# Using full hex ID
+curl http://localhost:3000/api/short/term/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e
+# Returns: http://localhost:3000/9LE
+
+# Using partial hex ID
+curl http://localhost:3000/api/short/term/0x8c486fd3377
+# Returns: http://localhost:3000/9LE
+
+# Using base62 ID
+curl http://localhost:3000/api/short/term/9LE
+# Returns: http://localhost:3000/9LE
+```
+
+### Shorten a List
+
+```bash
+# Using full hex IDs
+curl "http://localhost:3000/api/short/list/0x7ec36d201c842dc787b45cb5bb753bea4cf849be3908fb1b0a7d067c3c3cc1f5/0x8ed4f8de1491e074fa188b5c679ee45c657e0802c186e3bb45a4d3f3faa6d426"
+# Returns: http://localhost:3000/8RP/9Vk
+
+# Using base62 IDs
+curl http://localhost:3000/api/short/list/8RP/9Vk
+# Returns: http://localhost:3000/8RP/9Vk
+```
+
+### API Features
+
+- **Format Detection**: Accepts both hex (full or partial) and base62 IDs
+- **Plain Text Response**: Returns the shortened URL as plain text for easy parsing
+- **Error Handling**: Returns 404 with descriptive error messages for invalid or missing terms
+- **Parallel Processing**: List endpoint fetches both terms simultaneously for optimal performance
+
+### Error Responses
+
+```bash
+# Invalid term ID
+curl http://localhost:3000/api/short/term/invalid-id
+# Returns: Error: Term not found (404)
+
+# Missing list term
+curl http://localhost:3000/api/short/list/invalid1/invalid2
+# Returns: Error: One or both terms not found (404)
+```
 
 ## API Reference
 

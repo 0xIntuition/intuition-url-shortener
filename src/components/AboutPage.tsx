@@ -436,6 +436,56 @@ export const AboutPage: FC<AboutPageProps> = ({ hostname }) => {
             </ul>
           </div>
 
+          <div class="section">
+            <h2>Programmatic API Access</h2>
+            <p>
+              In addition to the web interface, we provide REST API endpoints for programmatic access.
+              These endpoints return shortened URLs as plain text, making them ideal for integration
+              with other services and automation workflows.
+            </p>
+
+            <h3>Term Shortening API</h3>
+            <div class="code-block">
+              <code>GET /api/short/term/:termId</code>
+            </div>
+            <p>
+              Accepts hex IDs (full or partial) or base62 IDs. Returns the shortened URL as plain text.
+            </p>
+            <div class="example-box">
+              <div class="example-label">Example Request</div>
+              <div class="code-block">
+                <code>curl {hostname}/api/short/term/0x8c486fd3377</code>
+              </div>
+              <div class="example-label" style="margin-top: 1rem;">Response</div>
+              <div class="code-block">
+                <code>{hostname}/9LE</code>
+              </div>
+            </div>
+
+            <h3>List Shortening API</h3>
+            <div class="code-block">
+              <code>GET /api/short/list/:predicateTermId/:objectTermId</code>
+            </div>
+            <p>
+              Accepts hex IDs or base62 IDs for both the predicate and object terms.
+            </p>
+            <div class="example-box">
+              <div class="example-label">Example Request</div>
+              <div class="code-block">
+                <code>curl {hostname}/api/short/list/8RP/9Vk</code>
+              </div>
+              <div class="example-label" style="margin-top: 1rem;">Response</div>
+              <div class="code-block">
+                <code>{hostname}/8RP/9Vk</code>
+              </div>
+            </div>
+
+            <p style="margin-top: 1rem;">
+              <strong>API Features:</strong> Format detection, plain text response, error handling,
+              and parallel processing for optimal performance.
+            </p>
+          </div>
+
           <div class="cta-section">
             <h2>Try It Yourself</h2>
             <p style="margin-bottom: 1.5rem;">

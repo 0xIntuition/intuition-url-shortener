@@ -6,11 +6,15 @@ import { aboutRoute } from './routes/about.js'
 import { listRoute } from './routes/list.js'
 import { termRoute } from './routes/term.js'
 import { errorRoute } from './routes/error.js'
+import { apiRoute } from './routes/api.js'
 
 const app = new Hono()
 
 // Health check endpoint (must be registered before catch-all routes)
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))
+
+// API routes (specific routes first)
+app.route('/api', apiRoute)
 
 // URL shortener routes (specific routes first)
 app.route('/short', shortenerRoute)
