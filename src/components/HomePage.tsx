@@ -106,7 +106,7 @@ export const HomePage: FC = () => {
           <h1>Intuition URL Shortener</h1>
           <p>Paste an Intuition Portal URL to create a shortened link</p>
 
-          <form method="post" action="/short">
+          <form method="get" action="/short">
             <div>
               <label for="url">Portal URL</label>
               <input

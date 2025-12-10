@@ -64,10 +64,9 @@ const InvalidUrlPage = () => (
   </html>
 )
 
-shortenerRoute.post('/', async (c) => {
-  // Parse form data
-  const formData = await c.req.formData()
-  const url = formData.get('url')
+shortenerRoute.get('/', async (c) => {
+  // Parse query parameter
+  const url = c.req.query('url')
 
   console.log(`Processing shortener request for URL: ${url}`)
 
