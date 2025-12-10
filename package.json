@@ -9,8 +9,8 @@
     "build": "npm run css:build && tsc",
     "start": "node dist/server.js",
     "type-check": "tsc --noEmit",
-    "css:watch": "npx tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch",
-    "css:build": "npx tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --minify"
+    "css:watch": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch",
+    "css:build": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --minify"
   },
   "keywords": [
     "hono",
