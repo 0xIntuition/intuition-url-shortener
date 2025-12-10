@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a URL shortening service for the Intuition protocol built with Hono framework. It provides two main features:
+This is a URL shortening service for the Intuition protocol built with Hono framework. It provides three main features:
 
 1. **URL Shortener Form**: A web interface at `/` where users can paste Intuition Portal URLs to generate shortened links
-2. **Smart Redirects**: Shortened URLs (e.g., `/:id`) serve HTML pages with Open Graph and Twitter Card meta tags for social media link unfurling, then redirect users to the full Intuition Portal
+2. **Smart Redirects for Atoms/Triples**: Shortened URLs (e.g., `/:id`) serve HTML pages with Open Graph and Twitter Card meta tags for social media link unfurling, then redirect users to the full Intuition Portal
+3. **List URL Support**: Special handling for list URLs with format `/:predicateId/:objectId` that redirect to list pages with custom list images
 
-**Purpose**: When users share shortened URLs, social media platforms can properly preview the content with title, description, and image before the automatic redirect occurs. The system automatically detects whether the ID represents an atom or triple and generates appropriate metadata.
+**Purpose**: When users share shortened URLs, social media platforms can properly preview the content with title, description, and image before the automatic redirect occurs. The system automatically detects whether the ID represents an atom, triple, or list and generates appropriate metadata.
 
 ## Essential Commands
 
@@ -28,8 +29,10 @@ npm start            # Run production server from dist/
 - Test atom redirect (base62): `http://localhost:3000/9LE`
 - Test partial hex ID: `http://localhost:3000/0x8c486fd3377`
 - Test triple redirect: `http://localhost:3000/{triple-id}`
+- Test list redirect: `http://localhost:3000/8RP/9Vk`
 - Test 404: `http://localhost:3000/invalid-id`
 - Test form submission: POST to `http://localhost:3000/short` with form data `url=...`
+- Test list form submission: POST with `url=https://portal.intuition.systems/explore/list/0x7ec36d201c842dc787b45cb5bb753bea4cf849be3908fb1b0a7d067c3c3cc1f5-0x8ed4f8de1491e074fa188b5c679ee45c657e0802c186e3bb45a4d3f3faa6d426`
 
 ## Architecture
 
@@ -52,7 +55,7 @@ npm start            # Run production server from dist/
 10. Preview page displays: share card preview, shortened URL, and copy button
 11. User can copy the short URL in base62 format (e.g., `http://localhost:3000/9LE`)
 
-**Redirect Flow** (Shortened URL Access):
+**Redirect Flow - Atoms/Triples** (Shortened URL Access):
 1. User hits `/:id` with hex ID (e.g., `0x8c486...`) or base62 ID (e.g., `9LE`)
 2. Route handler (`src/routes/term.tsx`) detects ID format using `detectIdFormat()` (`src/utils/idDetector.ts`)
 3. If base62, decode to hex using `base62ToHex()` (`src/utils/base62.ts`)
@@ -68,6 +71,31 @@ npm start            # Run production server from dist/
 11. Route renders unified `RedirectPage` component with meta tags
 12. HTML includes three redirect methods (meta refresh, JavaScript, visible link)
 13. Returns 404 error page if no data found or if data is malformed
+
+**List URL Shortening Flow**:
+1. User visits `/` and pastes a list URL: `https://portal.intuition.systems/explore/list/{predicateId}-{objectId}`
+2. Form POSTs to `/short` route handler
+3. Handler calls `extractIdFromUrl()` which detects list format and returns `{ type: 'list', predicateId, objectId }`
+4. Handler fetches BOTH terms from GraphQL in parallel using `Promise.all([fetchTerm(predicateId), fetchTerm(objectId)])`
+5. Handler validates both terms exist and are unique (returns 404 if ambiguous)
+6. Handler calls `findShortestPrefix()` for BOTH IDs in parallel
+7. Handler encodes both shortest prefixes to base62
+8. Handler generates short URL: `/{base62PredicateId}/{base62ObjectId}` (e.g., `/8RP/9Vk`)
+9. Handler extracts metadata from the **object term** (title, description)
+10. Handler generates list image URL using full hex IDs: `http://portal.intuition.systems/resources/list-image?id={fullPredicateId}-{fullObjectId}`
+11. Preview page displays the list image and shortened URL
+
+**List Redirect Flow**:
+1. User hits `/:predicateId/:objectId` with base62 or hex IDs (e.g., `/8RP/9Vk`)
+2. Route handler (`src/routes/list.tsx`) detects format of BOTH IDs
+3. If base62, decodes both to hex prefixes
+4. Route fetches both terms from GraphQL in parallel
+5. Route validates both terms exist (returns 404 if missing)
+6. Route extracts metadata from **object term** only
+7. Route generates list image URL with full hex IDs
+8. Route generates redirect URL with full hex IDs: `https://portal.intuition.systems/explore/list/{fullPredicateId}-{fullObjectId}`
+9. Route renders `RedirectPage` with list image and redirect URL
+10. User is redirected to full list page on portal
 
 ### Key Design Decisions
 
@@ -111,11 +139,19 @@ This enables partial ID matching (e.g., `/0x8c486fd3377` matches full IDs starti
 - **Redirect route** (`/:id`): Takes first result, enabling convenient partial hex IDs
 - **Shortener route** (`/short`): Returns 404 if multiple results to enforce uniqueness
 
-**URL Parsing Flexibility**: The `extractIdFromUrl()` utility (`src/utils/urlParser.ts`) extracts IDs from various URL formats using regex patterns:
-- Portal URLs: `https://portal.intuition.systems/explore/atom/{id}`
-- Portal URLs: `https://portal.intuition.systems/explore/triple/{id}`
-- Plain IDs: `0x...`
-- Any URL containing a 0x-prefixed hex ID
+**URL Parsing Flexibility**: The `extractIdFromUrl()` utility (`src/utils/urlParser.ts`) extracts IDs from various URL formats using regex patterns and returns a typed result:
+- Portal atoms: `https://portal.intuition.systems/explore/atom/{id}` → `{ type: 'term', id }`
+- Portal triples: `https://portal.intuition.systems/explore/triple/{id}` → `{ type: 'term', id }`
+- Portal lists: `https://portal.intuition.systems/explore/list/{predicateId}-{objectId}` → `{ type: 'list', predicateId, objectId }`
+- Plain IDs: `0x...` → `{ type: 'term', id }`
+- Any URL containing a 0x-prefixed hex ID → `{ type: 'term', id }`
+
+**List URL Design**: Lists are handled differently from atoms/triples:
+- **Shortened URL format**: `/{base62PredicateId}/{base62ObjectId}` requires TWO path parameters
+- **Route priority**: List route (`/:predicateId/:objectId`) is registered BEFORE term route (`/:id`) in `src/index.ts` to ensure proper matching
+- **Metadata source**: Uses **object term only** for title and description (not predicate)
+- **Image handling**: Uses special list image endpoint with full hex IDs: `portal.intuition.systems/resources/list-image?id={fullPredId}-{fullObjId}`
+- **Redirect expansion**: Short prefixes are expanded back to full hex IDs before redirecting to ensure the portal receives complete IDs
 
 **Meta Tag Priority**: The three-layer redirect strategy ensures social media crawlers see meta tags:
 1. `<meta http-equiv="refresh">` - Browser fallback
@@ -138,7 +174,8 @@ This enables partial ID matching (e.g., `/0x8c486fd3377` matches full IDs starti
 
 **Routes** (`src/routes/`): Each route file exports a Hono app instance and handles a specific path pattern.
 - `home.tsx` - Homepage with URL shortener form (GET `/`)
-- `shortener.tsx` - Form submission handler (POST `/short`)
+- `shortener.tsx` - Form submission handler (POST `/short`) - handles atoms, triples, and lists
+- `list.tsx` - List redirect handler (GET `/:predicateId/:objectId`) - registered before term route
 - `term.tsx` - Unified redirect handler for atoms and triples (GET `/:id`)
 - `error.tsx` - 404 error handler
 
@@ -238,7 +275,13 @@ Note: Platforms cache meta tags aggressively. Use these tools to refresh cache.
 
 **Changing portal URLs**: Update URL construction in `src/utils/metadata.ts` (single source of truth for both atoms and triples).
 
-**Modifying URL parsing**: Edit regex patterns in `src/utils/urlParser.ts` to support additional URL formats.
+**Modifying URL parsing**: Edit regex patterns in `src/utils/urlParser.ts` to support additional URL formats. The function returns a typed `ParsedUrl` result that can be `{ type: 'term', id }` or `{ type: 'list', predicateId, objectId }`.
+
+**Adding support for new URL types**:
+1. Update `extractIdFromUrl()` in `src/utils/urlParser.ts` to parse the new format
+2. Update shortener route (`src/routes/shortener.tsx`) to handle the new type
+3. Create a new route handler if the URL structure differs (like lists with two IDs)
+4. Register the new route in `src/index.ts` with appropriate priority
 
 **Adjusting prefix algorithm**: Modify constants in `src/utils/prefixFinder.ts` to tune performance:
 - `MIN_PREFIX_LEN` (default: 2) - Starting hex prefix length

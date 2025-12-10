@@ -2,6 +2,7 @@
 import { Hono } from 'hono'
 import { homeRoute } from './routes/home.js'
 import { shortenerRoute } from './routes/shortener.js'
+import { listRoute } from './routes/list.js'
 import { termRoute } from './routes/term.js'
 import { errorRoute } from './routes/error.js'
 
@@ -13,9 +14,10 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 // URL shortener routes (specific routes first)
 app.route('/short', shortenerRoute)
 
-// Homepage and term routes
+// Homepage and term routes (order matters - more specific routes first)
 app.route('/', homeRoute)    // Handles GET /
-app.route('/', termRoute)     // Handles GET /:id (catch-all for IDs)
+app.route('/', listRoute)    // Handles GET /:predicateId/:objectId (list URLs)
+app.route('/', termRoute)    // Handles GET /:id (catch-all for single IDs)
 
 // 404 handler
 app.notFound(errorRoute)

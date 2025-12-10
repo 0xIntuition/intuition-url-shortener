@@ -77,15 +77,89 @@ shortenerRoute.post('/', async (c) => {
     return c.html(<InvalidUrlPage />, 400)
   }
 
-  // Extract ID from URL
-  const id = extractIdFromUrl(url)
+  // Extract ID(s) from URL
+  const parsed = extractIdFromUrl(url)
 
-  if (!id) {
+  if (!parsed) {
     console.log(`Could not extract ID from URL: ${url}`)
     return c.html(<InvalidUrlPage />, 400)
   }
 
-  console.log(`Extracted ID: ${id}`)
+  // Handle list URLs
+  if (parsed.type === 'list') {
+    console.log(`Extracted list IDs - Predicate: ${parsed.predicateId}, Object: ${parsed.objectId}`)
+
+    // Fetch both terms from GraphQL
+    const [predicateData, objectData] = await Promise.all([
+      fetchTerm(parsed.predicateId),
+      fetchTerm(parsed.objectId)
+    ])
+
+    // Validate both terms exist
+    if (!predicateData?.terms || predicateData.terms.length === 0) {
+      console.log(`No predicate term found for ID: ${parsed.predicateId}`)
+      return c.html(<ErrorPage />, 404)
+    }
+    if (!objectData?.terms || objectData.terms.length === 0) {
+      console.log(`No object term found for ID: ${parsed.objectId}`)
+      return c.html(<ErrorPage />, 404)
+    }
+
+    // Check for ambiguous matches
+    if (predicateData.terms.length > 1) {
+      console.log(`Ambiguous predicate match: ${predicateData.terms.length} results found`)
+      return c.html(<ErrorPage />, 404)
+    }
+    if (objectData.terms.length > 1) {
+      console.log(`Ambiguous object match: ${objectData.terms.length} results found`)
+      return c.html(<ErrorPage />, 404)
+    }
+
+    const predicateTerm = predicateData.terms[0]
+    const objectTerm = objectData.terms[0]
+
+    // Find shortest prefixes for both IDs
+    console.log(`Finding shortest prefixes...`)
+    const [predicatePrefix, objectPrefix] = await Promise.all([
+      findShortestPrefix(predicateTerm.id),
+      findShortestPrefix(objectTerm.id)
+    ])
+    console.log(`Predicate prefix: ${predicatePrefix}, Object prefix: ${objectPrefix}`)
+
+    // Encode both to base62
+    const base62Predicate = hexToBase62(predicatePrefix)
+    const base62Object = hexToBase62(objectPrefix)
+    console.log(`Encoded predicate ${predicatePrefix} → ${base62Predicate}`)
+    console.log(`Encoded object ${objectPrefix} → ${base62Object}`)
+
+    // Generate short URL
+    const baseUrl = new URL(c.req.url).origin
+    const shortUrl = `${baseUrl}/${base62Predicate}/${base62Object}`
+
+    // Extract object metadata (use object term for title/description)
+    const objectMetadata = extractMetadata(objectTerm)
+    if (!objectMetadata) {
+      console.log(`Malformed object term data for ID: ${parsed.objectId}`)
+      return c.html(<ErrorPage />, 404)
+    }
+
+    // Generate list image URL with full hex IDs
+    const listImageUrl = `http://portal.intuition.systems/resources/list-image?id=${predicateTerm.id}-${objectTerm.id}`
+
+    console.log(`Generated list short URL: ${shortUrl}`)
+
+    return c.html(
+      <PreviewPage
+        {...objectMetadata}
+        imageUrl={listImageUrl}
+        shortUrl={shortUrl}
+      />
+    )
+  }
+
+  // Handle term URLs (atom/triple) - existing logic
+  const { id } = parsed
+  console.log(`Extracted term ID: ${id}`)
 
   // Fetch data from GraphQL
   const data = await fetchTerm(id)

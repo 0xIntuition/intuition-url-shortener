@@ -14,7 +14,7 @@ export const RedirectPage: FC<MetaData> = (props) => {
         <MetaTags {...props} />
 
         {/* Meta refresh as fallback */}
-        <meta http-equiv="refresh" content="0;url={props.url}" />
+        <meta http-equiv="refresh" content={`0;url=${props.url}`} />
 
         <style>{`
           body {
@@ -43,7 +43,7 @@ export const RedirectPage: FC<MetaData> = (props) => {
       </head>
       <body>
         <div class="container">
-          <p>Redirecting to <a href={props.url}>{props.url}</a>...</p>
+          <p>Redirecting to <a href={props.url}>{props.title}</a></p>
         </div>
 
         {/* JavaScript redirect */}

@@ -19,6 +19,7 @@ A lightweight URL shortening service built with [Hono](https://hono.dev/) that p
 - `GET /` - URL shortener form homepage
 - `GET /health` - Health check endpoint
 - `POST /short` - Create shortened URL (accepts form data with portal URL)
+- `GET /:predicateId/:objectId` - List redirect with social meta tags
 - `GET /:id` - Unified redirect for atoms and triples with social meta tags
 
 ## Tech Stack
@@ -75,10 +76,14 @@ Visit these URLs to test:
 - Health check: `http://localhost:3000/health`
 - Direct atom link: `http://localhost:3000/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
 - Direct triple link: `http://localhost:3000/{triple-id}`
+- Direct list link: `http://localhost:3000/8RP/9Vk`
 
 To test the URL shortener form:
 1. Visit `http://localhost:3000/`
-2. Paste a portal URL (e.g., `https://portal.intuition.systems/explore/atom/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`)
+2. Paste a portal URL:
+   - Atom: `https://portal.intuition.systems/explore/atom/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
+   - Triple: `https://portal.intuition.systems/explore/triple/{triple-id}`
+   - List: `https://portal.intuition.systems/explore/list/0x7ec36d201c842dc787b45cb5bb753bea4cf849be3908fb1b0a7d067c3c3cc1f5-0x8ed4f8de1491e074fa188b5c679ee45c657e0802c186e3bb45a4d3f3faa6d426`
 3. Click "Shorten URL"
 4. View the preview and copy the shortened link
 
@@ -133,6 +138,7 @@ intuition-url-shortener/
 │   ├── routes/
 │   │   ├── home.tsx            # GET / - Homepage form
 │   │   ├── shortener.tsx       # POST /short - Form handler
+│   │   ├── list.tsx            # GET /:predicateId/:objectId - List redirect
 │   │   ├── term.tsx            # GET /:id - Unified redirect
 │   │   └── error.tsx           # 404 handler
 │   ├── services/
@@ -167,6 +173,7 @@ intuition-url-shortener/
 
 ### URL Shortening Flow
 
+**For Atoms and Triples**:
 1. User visits `/` and sees the URL shortener form
 2. User pastes an Intuition Portal URL
 3. Form submits to `/short` which extracts the ID using regex patterns
@@ -178,8 +185,20 @@ intuition-url-shortener/
    - Shortened URL (e.g., `http://localhost:3000/9LE`)
    - Copy button for easy sharing
 
+**For Lists**:
+1. User visits `/` and sees the URL shortener form
+2. User pastes a list URL: `portal.intuition.systems/explore/list/{predicateId}-{objectId}`
+3. Form submits to `/short` which extracts both predicate and object IDs
+4. Server queries GraphQL for both terms in parallel
+5. Server finds shortest prefix for EACH ID separately
+6. Server encodes both prefixes to base62
+7. Server displays preview using object term's metadata
+8. Shortened URL format: `/{base62PredicateId}/{base62ObjectId}` (e.g., `http://localhost:3000/8RP/9Vk`)
+9. List image URL uses full hex IDs: `portal.intuition.systems/resources/list-image?id={fullPredicateId}-{fullObjectId}`
+
 ### Redirect Flow
 
+**For Atoms and Triples** (`/:id`):
 1. User or social media bot visits shortened URL (e.g., `/:id`)
 2. Server detects ID format (hex with `0x` prefix or base62 alphanumeric)
 3. If base62, decodes to hex prefix (preserving short prefixes)
@@ -189,6 +208,15 @@ intuition-url-shortener/
 7. Server renders HTML with Open Graph and Twitter Card meta tags
 8. Social media crawlers see the meta tags for link previews
 9. User is automatically redirected to the full portal URL
+
+**For Lists** (`/:predicateId/:objectId`):
+1. User or social media bot visits list URL (e.g., `/8RP/9Vk`)
+2. Server detects format of both IDs and decodes if base62
+3. Server queries GraphQL for both terms in parallel
+4. Server extracts metadata from object term (title, description)
+5. Server generates list image URL with full hex IDs
+6. Server renders HTML with meta tags pointing to list image
+7. User is redirected to: `portal.intuition.systems/explore/list/{fullPredicateId}-{fullObjectId}`
 
 ## Shortest Prefix Algorithm
 
