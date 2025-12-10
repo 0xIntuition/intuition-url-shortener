@@ -30,13 +30,9 @@ export function extractMetadata(term: Term): MetaData | null {
     const subjectLabel = triple.subject.label || 'Unknown'
     const predicateLabel = triple.predicate.label || 'Unknown'
     const objectLabel = triple.object.label || 'Unknown'
-    const title = `${subjectLabel} - ${predicateLabel} - ${objectLabel}`
+    const title = `${subjectLabel} ${predicateLabel} ${objectLabel}`
 
-    // Try to get description from subject or predicate, fallback to default
-    const description =
-      triple.subject.value?.json_object?.description ||
-      triple.predicate.value?.json_object?.description ||
-      DEFAULT_DESCRIPTION
+    const description = ''
 
     return {
       title,
