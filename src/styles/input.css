@@ -1,0 +1,98 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-bg-base text-text-primary font-sans antialiased;
+  }
+
+  body {
+    @apply bg-bg-base text-text-primary font-sans;
+  }
+}
+
+@layer components {
+  /* Button with gradient hover overlay */
+  .btn-gradient-hover {
+    @apply relative overflow-hidden;
+  }
+
+  .btn-gradient-hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    opacity: 0;
+    transition: opacity 200ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  .btn-gradient-hover:hover::before {
+    opacity: 1;
+  }
+
+  /* Link with animated underline */
+  .link-underline-animated {
+    @apply relative;
+  }
+
+  .link-underline-animated::after {
+    content: '';
+    position: absolute;
+    bottom: 6px;
+    left: 0.75rem;
+    right: 0.75rem;
+    height: 1px;
+    background: #3b82f6;
+    transform: scaleX(0);
+    transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  .link-underline-animated:hover::after {
+    transform: scaleX(1);
+  }
+
+  /* Title with gradient accent underline */
+  .title-accent::after {
+    content: '';
+    display: block;
+    width: 48px;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    margin: 1rem auto 0;
+    border-radius: 2px;
+  }
+}
+
+@layer utilities {
+  /* Accessibility: Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* Custom background utilities with color-mix */
+  .bg-success-10 {
+    background: color-mix(in srgb, #10b981 10%, transparent);
+  }
+
+  .bg-brand-primary-3 {
+    background: color-mix(in srgb, #3b82f6 3%, transparent);
+  }
+
+  .bg-brand-primary-5 {
+    background: color-mix(in srgb, #3b82f6 5%, transparent);
+  }
+
+  .border-success-30 {
+    border-color: color-mix(in srgb, #10b981 30%, transparent);
+  }
+}

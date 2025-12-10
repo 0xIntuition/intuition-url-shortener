@@ -3,129 +3,67 @@ import type { FC } from 'hono/jsx'
 
 export const HomePage: FC = () => {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <title>Intuition URL Shortener</title>
-
-        <style>{`
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 2rem;
-          }
-          .container {
-            max-width: 600px;
-            width: 100%;
-          }
-          h1 {
-            font-size: 2.5rem;
-            margin: 0 0 1rem 0;
-            text-align: center;
-            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-          }
-          p {
-            font-size: 1.1rem;
-            color: #9ca3af;
-            text-align: center;
-            margin: 0 0 2rem 0;
-          }
-          form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-          }
-          label {
-            font-size: 1rem;
-            color: #d1d5db;
-            margin-bottom: 0.5rem;
-          }
-          input[type="text"] {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1rem;
-            background: #1f2937;
-            border: 2px solid #374151;
-            border-radius: 0.5rem;
-            color: #ffffff;
-            box-sizing: border-box;
-            transition: border-color 0.2s;
-          }
-          input[type="text"]:focus {
-            outline: none;
-            border-color: #60a5fa;
-          }
-          input[type="text"]::placeholder {
-            color: #6b7280;
-          }
-          button {
-            padding: 1rem 2rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-            border: none;
-            border-radius: 0.5rem;
-            color: #ffffff;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-          }
-          button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
-          }
-          button:active {
-            transform: translateY(0);
-          }
-          .footer {
-            margin-top: 2rem;
-            text-align: center;
-            font-size: 0.9rem;
-            color: #6b7280;
-          }
-          .footer a {
-            color: #60a5fa;
-            text-decoration: none;
-          }
-          .footer a:hover {
-            text-decoration: underline;
-          }
-        `}</style>
+        <link rel="stylesheet" href="/styles/output.css" />
       </head>
-      <body>
-        <div class="container">
-          <h1>Intuition URL Shortener</h1>
-          <p>Paste an Intuition Portal URL to create a shortened link</p>
+      <body className="flex items-center justify-center min-h-screen p-8 sm:p-6">
+        <div className="container max-w-[540px] w-full animate-fade-in-up">
+          <h1 className="title-accent text-3xl sm:text-2xl font-bold leading-tight text-center m-0 mb-4 text-text-primary tracking-tight">
+            Shorten Intuition Links
+          </h1>
+          <p className="text-lg sm:text-base leading-normal text-text-secondary text-center m-0 mb-20 sm:mb-12 font-normal">
+            Transform long blockchain IDs into compact, shareable URLs
+          </p>
 
-          <form method="get" action="/short">
-            <div>
-              <label for="url">Portal URL</label>
+          <form method="get" action="/short" role="search" aria-label="URL shortener form" className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <label htmlFor="url" id="url-label" className="text-sm font-medium text-text-secondary tracking-wide">
+                Intuition Portal URL
+              </label>
               <input
                 type="text"
                 id="url"
                 name="url"
-                placeholder="https://portal.intuition.systems/explore/atom/0x..."
+                aria-labelledby="url-label"
+                aria-required="true"
+                placeholder="portal.intuition.systems/explore/atom/0x..."
                 required
                 autofocus
+                className="w-full p-4 min-h-[52px] text-base bg-bg-input border border-border-base rounded-md text-text-primary transition-all duration-base ease-out-custom placeholder:text-text-tertiary hover:border-border-hover hover:bg-bg-hover focus:outline-none focus:border-brand-primary focus:shadow-focus focus:scale-[1.005] focus:bg-bg-base appearance-none"
               />
             </div>
-            <button type="submit">Shorten URL</button>
+            <button
+              type="submit"
+              aria-label="Generate shortened link"
+              className="btn-gradient-hover p-4 px-8 min-h-[52px] text-base font-semibold bg-brand-primary border-none rounded-md text-white cursor-pointer transition-all duration-fast ease-out-custom hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:shadow-focus focus-visible:shadow-md active:translate-y-0"
+            >
+              <span className="relative z-10">Generate Short Link</span>
+            </button>
           </form>
 
-          <div class="footer">
-            <a href="/about">How It Works</a>
-            {' · '}
-            <a href="https://portal.intuition.systems" target="_blank">Visit Intuition Portal</a>
-          </div>
+          <nav className="footer flex justify-center items-center gap-4 mt-20 sm:mt-12 pt-8 text-center text-sm text-text-tertiary border-t border-border-base sm:flex-col sm:gap-2" aria-label="Footer navigation">
+            <a
+              href="/about"
+              aria-label="Learn how this URL shortener works"
+              className="link-underline-animated text-text-secondary no-underline p-2 px-3 min-h-[44px] inline-flex items-center transition-colors duration-fast ease-out-custom font-medium hover:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 focus-visible:rounded-sm"
+            >
+              Learn More
+            </a>
+            <span className="separator text-border-base select-none sm:hidden" aria-hidden="true">·</span>
+            <a
+              href="https://portal.intuition.systems"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit Intuition Portal (opens in new tab)"
+              className="link-underline-animated text-text-secondary no-underline p-2 px-3 min-h-[44px] inline-flex items-center transition-colors duration-fast ease-out-custom font-medium hover:text-brand-primary focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 focus-visible:rounded-sm"
+            >
+              Visit Portal
+            </a>
+          </nav>
         </div>
       </body>
     </html>

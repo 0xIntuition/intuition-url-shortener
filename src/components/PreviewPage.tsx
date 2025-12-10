@@ -8,187 +8,80 @@ interface PreviewPageProps extends MetaData {
 
 export const PreviewPage: FC<PreviewPageProps> = (props) => {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
-        <title>Preview - Intuition URL Shortener</title>
-
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+        <title>Link Created - Intuition URL Shortener</title>
+        <link rel="stylesheet" href="/styles/output.css" />
         <style>{`
-          * {
-            box-sizing: border-box;
+          .copied {
+            background: #10b981 !important;
           }
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            margin: 0;
-            padding: 2rem;
-            min-height: 100vh;
-          }
-          .container {
-            max-width: 800px;
-            margin: 0 auto;
-          }
-          h1 {
-            font-size: 2rem;
-            margin: 0 0 2rem 0;
-            text-align: center;
-            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-          }
-          .section {
-            background: #1f2937;
-            border: 2px solid #374151;
-            border-radius: 0.75rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-          }
-          .section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin: 0 0 1.5rem 0;
-            color: #60a5fa;
-          }
-          .preview-card {
-            background: #111827;
-            border: 1px solid #374151;
-            border-radius: 0.5rem;
-            overflow: hidden;
-          }
-          .preview-image {
-            width: 100%;
-            height: auto;
-            display: block;
-            background: #1f2937;
-          }
-          .preview-content {
-            padding: 1.5rem;
-          }
-          .preview-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0 0 0.75rem 0;
-            color: #ffffff;
-          }
-          .preview-description {
-            font-size: 1rem;
-            line-height: 1.6;
-            margin: 0;
-            color: #9ca3af;
-          }
-          .url-container {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-          }
-          .url-input {
-            flex: 1;
-            padding: 1rem;
-            font-size: 1rem;
-            background: #111827;
-            border: 2px solid #374151;
-            border-radius: 0.5rem;
-            color: #60a5fa;
-            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
-          }
-          .url-input:focus {
-            outline: none;
-            border-color: #60a5fa;
-          }
-          .copy-button {
-            padding: 1rem 2rem;
-            font-size: 1rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-            border: none;
-            border-radius: 0.5rem;
-            color: #ffffff;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            white-space: nowrap;
-          }
-          .copy-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(96, 165, 250, 0.4);
-          }
-          .copy-button:active {
-            transform: translateY(0);
-          }
-          .copy-button.copied {
-            background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-          }
-          .actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-          }
-          .link-button {
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            background: transparent;
-            border: 2px solid #374151;
-            border-radius: 0.5rem;
-            color: #9ca3af;
-            text-decoration: none;
-            display: inline-block;
-            transition: border-color 0.2s, color 0.2s;
-          }
-          .link-button:hover {
-            border-color: #60a5fa;
-            color: #60a5fa;
-          }
-          @media (max-width: 640px) {
-            .url-container {
-              flex-direction: column;
-            }
-            .copy-button {
-              width: 100%;
-            }
+          .copied::before {
+            opacity: 0 !important;
           }
         `}</style>
       </head>
-      <body>
-        <div class="container">
-          <h1>Your Shortened URL is Ready!</h1>
+      <body className="p-8 sm:p-6 min-h-screen">
+        <div className="container max-w-[640px] mx-auto animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-success-10 border border-success-30 rounded-md text-success text-sm font-medium mx-auto mb-16 animate-fade-in-up">
+            <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-4 h-4">
+              <path d="M13.3337 4L6.00033 11.3333L2.66699 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Link created
+          </div>
 
-          <div class="section">
-            <h2 class="section-title">Share Card Preview</h2>
-            <div class="preview-card">
-              <img src={props.imageUrl} alt={props.title} class="preview-image" />
-              <div class="preview-content">
-                <h3 class="preview-title">{props.title}</h3>
-                <p class="preview-description">{props.description}</p>
+          <div className="mb-8 animate-fade-in-up" style="animation-delay: 100ms; animation-fill-mode: both;">
+            <div className="text-xs font-semibold uppercase tracking-wider text-text-tertiary mb-4">Preview</div>
+            <div className="bg-bg-card border border-border-base rounded-lg overflow-hidden transition-all duration-base ease-out-custom hover:-translate-y-0.5 hover:shadow-lg hover:border-border-hover">
+              <img src={props.imageUrl} alt={props.title} className="w-full h-auto block bg-bg-elevated border-b border-border-base" />
+              <div className="p-6 sm:p-5">
+                <h1 className="text-xl font-semibold leading-tight m-0 mb-3 text-text-primary">{props.title}</h1>
+                <p className="text-base leading-normal m-0 text-text-secondary">{props.description}</p>
               </div>
             </div>
           </div>
 
-          <div class="section">
-            <h2 class="section-title">Shortened URL</h2>
-            <div class="url-container">
+          <div className="mb-0 animate-fade-in-up" style="animation-delay: 200ms; animation-fill-mode: both;">
+            <div className="flex gap-3 items-stretch sm:flex-col">
               <input
                 type="text"
                 id="short-url"
-                class="url-input"
+                className="flex-1 p-4 min-h-[52px] text-base bg-bg-input border border-border-base rounded-md text-brand-primary font-medium transition-all duration-base ease-out-custom select-all focus:outline-none focus:border-brand-primary focus:shadow-focus focus:bg-bg-base"
                 value={props.shortUrl}
                 readonly
+                aria-label="Your shortened URL"
+                aria-readonly="true"
               />
               <button
-                class="copy-button"
+                className="btn-gradient-hover px-6 py-4 min-h-[52px] text-base font-semibold bg-brand-primary border-none rounded-md text-white cursor-pointer transition-all duration-fast ease-out-custom whitespace-nowrap hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:shadow-focus focus-visible:shadow-md active:scale-95 sm:w-full"
                 id="copy-btn"
                 onclick="copyToClipboard()"
+                aria-label="Copy shortened URL to clipboard"
               >
-                Copy
+                <span className="relative z-10">Copy Link</span>
               </button>
             </div>
           </div>
 
-          <div class="actions">
-            <a href="/" class="link-button">Create Another</a>
-            <a href={props.shortUrl} class="link-button" target="_blank">Test Link</a>
+          <div className="flex gap-4 justify-center mt-12 pt-8 border-t border-border-base animate-fade-in-up sm:flex-col sm:gap-3" style="animation-delay: 300ms; animation-fill-mode: both;">
+            <a
+              href="/"
+              className="px-6 py-3 min-h-[48px] text-base font-medium bg-transparent border border-border-base rounded-md text-text-secondary no-underline inline-flex items-center justify-center transition-all duration-fast ease-out-custom hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary-5 focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 sm:w-full"
+              aria-label="Create another shortened URL"
+            >
+              Create Another Link
+            </a>
+            <a
+              href={props.shortUrl}
+              className="px-6 py-3 min-h-[48px] text-base font-medium bg-transparent border border-border-base rounded-md text-text-secondary no-underline inline-flex items-center justify-center transition-all duration-fast ease-out-custom hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary-5 focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 sm:w-full"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Preview shortened link in Portal"
+            >
+              Preview in Portal
+            </a>
           </div>
         </div>
 
@@ -197,27 +90,47 @@ export const PreviewPage: FC<PreviewPageProps> = (props) => {
             function copyToClipboard() {
               const input = document.getElementById('short-url');
               const button = document.getElementById('copy-btn');
+              const originalText = button.querySelector('span').textContent;
 
-              // Use the Clipboard API
               navigator.clipboard.writeText(input.value).then(function() {
                 // Update button to show success
-                button.textContent = 'Copied!';
+                button.querySelector('span').textContent = 'Copied ✓';
                 button.classList.add('copied');
+                button.setAttribute('aria-label', 'URL copied to clipboard');
 
-                // Reset after 2 seconds
+                // Announce to screen readers
+                const announcement = document.createElement('div');
+                announcement.setAttribute('role', 'status');
+                announcement.setAttribute('aria-live', 'polite');
+                announcement.textContent = 'Shortened URL copied to clipboard';
+                announcement.className = 'sr-only';
+                document.body.appendChild(announcement);
+
+                // Reset after 2.5 seconds
                 setTimeout(function() {
-                  button.textContent = 'Copy';
+                  button.querySelector('span').textContent = originalText;
                   button.classList.remove('copied');
-                }, 2000);
+                  button.setAttribute('aria-label', 'Copy shortened URL to clipboard');
+                  if (announcement.parentNode) {
+                    document.body.removeChild(announcement);
+                  }
+                }, 2500);
               }).catch(function(err) {
                 console.error('Failed to copy: ', err);
                 // Fallback: select the text
                 input.select();
-                document.execCommand('copy');
-                button.textContent = 'Copied!';
-                setTimeout(function() {
-                  button.textContent = 'Copy';
-                }, 2000);
+                try {
+                  document.execCommand('copy');
+                  button.querySelector('span').textContent = 'Copied ✓';
+                  button.classList.add('copied');
+
+                  setTimeout(function() {
+                    button.querySelector('span').textContent = originalText;
+                    button.classList.remove('copied');
+                  }, 2500);
+                } catch (err) {
+                  console.error('Fallback copy failed:', err);
+                }
               });
             }
           `

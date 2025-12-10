@@ -1,5 +1,6 @@
 // Main Hono application
 import { Hono } from 'hono'
+import { serveStatic } from '@hono/node-server/serve-static'
 import { homeRoute } from './routes/home.js'
 import { shortenerRoute } from './routes/shortener.js'
 import { aboutRoute } from './routes/about.js'
@@ -9,6 +10,9 @@ import { errorRoute } from './routes/error.js'
 import { apiRoute } from './routes/api.js'
 
 const app = new Hono()
+
+// Serve static files (CSS)
+app.use('/styles/*', serveStatic({ root: './src' }))
 
 // Health check endpoint (must be registered before catch-all routes)
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))

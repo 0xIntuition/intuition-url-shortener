@@ -5,10 +5,12 @@
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
+    "dev": "npm run css:watch & tsx watch src/server.ts",
+    "build": "npm run css:build && tsc",
     "start": "node dist/server.js",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "css:watch": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --watch",
+    "css:build": "tailwindcss -i ./src/styles/input.css -o ./src/styles/output.css --minify"
   },
   "keywords": [
     "hono",
@@ -19,15 +21,16 @@
   "author": "0xIntuition",
   "license": "MIT",
   "dependencies": {
-    "hono": "^4.7.0",
     "@hono/node-server": "^1.13.0",
+    "graphql": "^16.9.0",
     "graphql-request": "^7.1.2",
-    "graphql": "^16.9.0"
+    "hono": "^4.7.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
     "@types/node": "^22.10.1",
-    "tsx": "^4.19.2"
+    "tailwindcss": "^4.1.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
   },
   "engines": {
     "node": ">=18.0.0"

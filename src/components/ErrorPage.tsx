@@ -3,53 +3,55 @@ import type { FC } from 'hono/jsx'
 
 export const ErrorPage: FC = () => {
   return (
-    <html lang="en" data-theme="dark">
+    <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=no" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         <title>404 - Not Found | Intuition</title>
-
-        <style>{`
-          body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: #0a0a0a;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            text-align: center;
-          }
-          .container {
-            max-width: 600px;
-            padding: 2rem;
-          }
-          h1 {
-            font-size: 3rem;
-            margin: 0 0 1rem 0;
-            color: #ef4444;
-          }
-          p {
-            font-size: 1.2rem;
-            margin: 0 0 2rem 0;
-            color: #9ca3af;
-          }
-          a {
-            color: #60a5fa;
-            text-decoration: none;
-            font-size: 1rem;
-          }
-          a:hover {
-            text-decoration: underline;
-          }
-        `}</style>
+        <link rel="stylesheet" href="/styles/output.css" />
       </head>
-      <body>
-        <div class="container">
-          <h1>404</h1>
-          <p>The requested atom or triple could not be found.</p>
-          <a href="https://portal.intuition.systems">Visit Intuition Portal</a>
+      <body className="flex items-center justify-center min-h-screen p-8 sm:p-6 text-center">
+        <div className="container max-w-[540px] w-full animate-fade-in-up">
+          <div className="inline-flex items-center px-4 py-2 bg-bg-elevated border border-border-base rounded-md text-text-tertiary text-sm font-medium mb-8">
+            404 Not Found
+          </div>
+
+          <h1 className="text-2xl sm:text-xl font-bold leading-tight m-0 mb-4 text-text-primary">
+            This link doesn't exist
+          </h1>
+          <p className="text-lg sm:text-base leading-normal m-0 mb-12 text-text-secondary">
+            The ID you're looking for might have been removed, shortened incorrectly, or never existed.
+          </p>
+
+          <div className="flex flex-col gap-3 items-center sm:w-full">
+            <a
+              href="/"
+              className="btn-gradient-hover inline-flex items-center justify-center px-8 py-4 min-h-[52px] text-base font-semibold bg-brand-primary rounded-md text-white no-underline cursor-pointer transition-all duration-fast ease-out-custom hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:shadow-focus focus-visible:shadow-md sm:w-full"
+              aria-label="Go to homepage"
+            >
+              <span className="relative z-10">Go Home</span>
+            </a>
+            <a
+              href="https://portal.intuition.systems"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center px-6 py-3 min-h-[48px] text-base font-medium bg-transparent border border-border-base rounded-md text-text-secondary no-underline cursor-pointer transition-all duration-fast ease-out-custom hover:border-brand-primary hover:text-brand-primary hover:bg-brand-primary-5 focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 sm:w-full"
+              aria-label="Browse Intuition Portal (opens in new tab)"
+            >
+              Browse Portal
+            </a>
+          </div>
+
+          <div className="mt-12 pt-8 border-t border-border-base text-sm text-text-tertiary">
+            Need help?{' '}
+            <a
+              href="/about"
+              aria-label="View documentation"
+              className="text-brand-primary no-underline transition-colors duration-fast ease-out-custom hover:text-brand-secondary focus-visible:outline-2 focus-visible:outline-brand-primary focus-visible:outline-offset-2 focus-visible:rounded-sm"
+            >
+              Check our documentation →
+            </a>
+          </div>
         </div>
       </body>
     </html>
