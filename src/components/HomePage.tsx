@@ -122,6 +122,8 @@ export const HomePage: FC = () => {
           </form>
 
           <div class="footer">
+            <a href="/about">How It Works</a>
+            {' · '}
             <a href="https://portal.intuition.systems" target="_blank">Visit Intuition Portal</a>
           </div>
         </div>

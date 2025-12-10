@@ -2,6 +2,7 @@
 import { Hono } from 'hono'
 import { homeRoute } from './routes/home.js'
 import { shortenerRoute } from './routes/shortener.js'
+import { aboutRoute } from './routes/about.js'
 import { listRoute } from './routes/list.js'
 import { termRoute } from './routes/term.js'
 import { errorRoute } from './routes/error.js'
@@ -13,6 +14,7 @@ app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOStri
 
 // URL shortener routes (specific routes first)
 app.route('/short', shortenerRoute)
+app.route('/about', aboutRoute)
 
 // Homepage and term routes (order matters - more specific routes first)
 app.route('/', homeRoute)    // Handles GET /
