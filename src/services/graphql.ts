@@ -6,7 +6,11 @@ import type { GetTermQuery, GetTermQueryVariables } from '../types/graphql.js'
 // GraphQL query from plans/query.graphql
 const GET_TERM_QUERY = `
   query GetTerm($id: String!) {
-    terms(where: { id: { _like: $id } }) {
+    terms(
+      order_by: [ {
+        created_at: asc
+      }]
+      where: { id: { _like: $id } }) {
       id
       atom {
         ...LightAtom

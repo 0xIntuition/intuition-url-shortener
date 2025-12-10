@@ -6,6 +6,7 @@ A lightweight URL shortening service built with [Hono](https://hono.dev/) that p
 
 - 🚀 **Fast & Lightweight**: Built with Hono framework (5KB)
 - 📝 **Web Interface**: User-friendly form for creating shortened URLs
+- ⚡ **Smart URL Compression**: Shortest prefix algorithm with base62 encoding produces ultra-short URLs (e.g., `9LE`)
 - 🔗 **Social Media Optimized**: Proper Open Graph and Twitter Card meta tags
 - 🎨 **Dynamic Content**: Meta tags populated from GraphQL data
 - 🤖 **Auto Type Detection**: Automatically detects atoms vs triples
@@ -147,7 +148,10 @@ intuition-url-shortener/
 │   └── utils/
 │       ├── env.ts              # Environment config
 │       ├── metadata.ts         # Type detection & extraction
-│       └── urlParser.ts        # URL parsing utility
+│       ├── urlParser.ts        # URL parsing utility
+│       ├── prefixFinder.ts     # Shortest prefix algorithm
+│       ├── base62.ts           # Base62 encoding/decoding
+│       └── idDetector.ts       # ID format detection
 ├── plans/                       # Reference files
 │   ├── example.html
 │   └── query.graphql
@@ -167,20 +171,42 @@ intuition-url-shortener/
 2. User pastes an Intuition Portal URL
 3. Form submits to `/short` which extracts the ID using regex patterns
 4. Server queries Intuition's GraphQL API for the term data
-5. Server displays a preview page showing:
+5. **Shortest Prefix Algorithm**: Server finds the shortest hex prefix that uniquely identifies the term (starts with 2 chars, uses smart character comparison to minimize API calls)
+6. Server encodes the shortest prefix to base62 for maximum URL compression
+7. Server displays a preview page showing:
    - Share card preview (title, description, image)
-   - Shortened URL (e.g., `http://localhost:3000/0x...`)
+   - Shortened URL (e.g., `http://localhost:3000/9LE`)
    - Copy button for easy sharing
 
 ### Redirect Flow
 
 1. User or social media bot visits shortened URL (e.g., `/:id`)
-2. Server queries Intuition's GraphQL API for the term data
-3. Server automatically detects whether it's an atom or triple
-4. Server extracts appropriate metadata (title, description)
-5. Server renders HTML with Open Graph and Twitter Card meta tags
-6. Social media crawlers see the meta tags for link previews
-7. User is automatically redirected to the full portal URL
+2. Server detects ID format (hex with `0x` prefix or base62 alphanumeric)
+3. If base62, decodes to hex prefix (preserving short prefixes)
+4. Server queries Intuition's GraphQL API using prefix matching (takes first result ordered by creation date)
+5. Server automatically detects whether it's an atom or triple
+6. Server extracts appropriate metadata (title, description)
+7. Server renders HTML with Open Graph and Twitter Card meta tags
+8. Social media crawlers see the meta tags for link previews
+9. User is automatically redirected to the full portal URL
+
+## Shortest Prefix Algorithm
+
+The URL shortener uses an intelligent algorithm to minimize URL length:
+
+1. **Start Small**: Begins with a 2-character hex prefix (e.g., `0x8c`)
+2. **Smart Comparison**: When collisions occur, compares IDs character-by-character to calculate exactly how many characters are needed
+3. **Jump to Target**: Instead of blindly incrementing, jumps directly to the required length
+4. **Minimize API Calls**: Typically requires only 1-3 GraphQL queries to find the optimal prefix
+5. **Base62 Encoding**: Encodes the shortest hex prefix to base62 for maximum compression
+
+**Example**:
+- Full ID: `0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
+- Shortest prefix: `0x8c48` (4 hex chars)
+- Base62 encoded: `9LE` (3 chars)
+- **Result**: 97% shorter URL!
+
+The algorithm leverages the fact that GraphQL results are ordered by creation date (oldest first), ensuring that partial IDs always resolve deterministically to the same term.
 
 ## Meta Tag Strategy
 

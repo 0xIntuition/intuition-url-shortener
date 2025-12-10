@@ -24,7 +24,9 @@ npm start            # Run production server from dist/
 ### Testing Locally
 - Health check: `http://localhost:3000/health`
 - Homepage (URL shortener form): `http://localhost:3000/`
-- Test atom redirect: `http://localhost:3000/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
+- Test atom redirect (hex): `http://localhost:3000/0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e`
+- Test atom redirect (base62): `http://localhost:3000/9LE`
+- Test partial hex ID: `http://localhost:3000/0x8c486fd3377`
 - Test triple redirect: `http://localhost:3000/{triple-id}`
 - Test 404: `http://localhost:3000/invalid-id`
 - Test form submission: POST to `http://localhost:3000/short` with form data `url=...`
@@ -39,23 +41,33 @@ npm start            # Run production server from dist/
 3. Form POSTs to `/short` route handler (`src/routes/shortener.tsx`)
 4. Handler extracts ID from URL using regex patterns (`src/utils/urlParser.ts`)
 5. Handler calls `fetchTerm(id)` to query GraphQL
-6. Handler calls `extractMetadata(term)` to get metadata with automatic type detection
-7. Preview page displays: share card preview, shortened URL, and copy button
-8. User can copy the short URL (e.g., `http://localhost:3000/0x...`)
+6. Handler validates uniqueness: returns 404 if multiple results found (prevents ambiguous matches)
+7. Handler calls `extractMetadata(term)` to get metadata with automatic type detection
+8. **Shortest Prefix Algorithm**: Handler calls `findShortestPrefix(term.id)` to find the shortest hex prefix that uniquely identifies the term as the first search result (`src/utils/prefixFinder.ts`)
+   - Starts with 2-character hex prefix, increments by 2 when collisions occur
+   - Uses smart character-by-character comparison to jump to needed length
+   - Minimizes API calls (typically 1-3 queries)
+   - Falls back to full 64-char ID if no unique prefix found
+9. Handler encodes the shortest hex prefix to base62 using `hexToBase62()` (`src/utils/base62.ts`)
+10. Preview page displays: share card preview, shortened URL, and copy button
+11. User can copy the short URL in base62 format (e.g., `http://localhost:3000/9LE`)
 
 **Redirect Flow** (Shortened URL Access):
-1. User hits `/:id` with any atom or triple ID
-2. Route handler (`src/routes/term.tsx`) calls `fetchTerm(id)`
-3. `fetchTerm` in `src/services/graphql.ts` queries Intuition's GraphQL API
-4. GraphQL query uses LIKE operator with prefix matching: `{ id: { _like: "${id}%" } }`
-5. If query returns multiple results, return 404 (ambiguous match)
-6. Route calls `extractMetadata(term)` which automatically detects atom vs triple
-7. `extractMetadata` utility (`src/utils/metadata.ts`) extracts type-specific metadata:
-   - Atoms: uses `atom.label` for title
-   - Triples: constructs title from `subject - predicate - object`
-8. Route renders unified `RedirectPage` component with meta tags
-9. HTML includes three redirect methods (meta refresh, JavaScript, visible link)
-10. Returns 404 error page if no data found or if data is malformed
+1. User hits `/:id` with hex ID (e.g., `0x8c486...`) or base62 ID (e.g., `9LE`)
+2. Route handler (`src/routes/term.tsx`) detects ID format using `detectIdFormat()` (`src/utils/idDetector.ts`)
+3. If base62, decode to hex using `base62ToHex()` (`src/utils/base62.ts`)
+4. If invalid format, return 404 error page
+5. Route calls `fetchTerm(hexId)` with the hex ID (supports partial matching)
+6. `fetchTerm` in `src/services/graphql.ts` queries Intuition's GraphQL API
+7. GraphQL query uses LIKE operator with prefix matching: `{ id: { _like: "${id}%" } }` and sorts by `created_at: asc`
+8. If multiple results, takes the first one (oldest term by creation date) - **no ambiguity check**
+9. Route calls `extractMetadata(term)` which automatically detects atom vs triple
+10. `extractMetadata` utility (`src/utils/metadata.ts`) extracts type-specific metadata:
+    - Atoms: uses `atom.label` for title
+    - Triples: constructs title from `subject - predicate - object`
+11. Route renders unified `RedirectPage` component with meta tags
+12. HTML includes three redirect methods (meta refresh, JavaScript, visible link)
+13. Returns 404 error page if no data found or if data is malformed
 
 ### Key Design Decisions
 
@@ -66,12 +78,38 @@ npm start            # Run production server from dist/
 
 This eliminates the need for separate `/atom/:id` and `/triple/:id` routes, simplifying the URL structure for end users.
 
-**GraphQL ID Prefix Matching**: The query uses prefix matching with trailing wildcard for LIKE operator:
+**Shortest Prefix Algorithm with Base62 Encoding**: The system finds the shortest unique hex prefix and encodes it to base62 for maximum URL compression:
+- **Why**: Dramatically reduces URL length. A 256-bit hex ID like `0x8c486fd3377cef67861f7137bcc89b188c7f1781314e393e22c1fa6fa24e520e` becomes just `9LE` (shortest prefix `0x8c48` encoded to base62).
+- **How**:
+  - **Shortest Prefix**: `findShortestPrefix()` algorithm (`src/utils/prefixFinder.ts`) finds the minimal hex prefix that uniquely identifies the term
+  - **Base62 Encoding**: Uses BigInt for arbitrary precision arithmetic. The alphabet is `0-9A-Za-z` (62 characters).
+  - **No Zero-Padding**: Decoded hex values preserve short prefixes (e.g., `9LE` → `0x8c48`, not `0x0000...8c48`)
+- **Format Detection** (`src/utils/idDetector.ts`): Automatically detects ID format based on structure:
+  - **Hex**: Starts with `0x` prefix + hexadecimal characters (supports partial matching)
+  - **Base62**: Alphanumeric only, minimum 1 character (supports shortest prefixes)
+  - Priority: hex > base62 (for backwards compatibility with existing hex URLs)
+- **Backwards Compatibility**: The redirect route still accepts full or partial hex IDs (e.g., `/0x8c486...`) alongside base62 IDs.
+- **Implementation**:
+  - Shortest prefix finding happens during URL shortening (`src/routes/shortener.tsx:116-125`)
+  - Decoding happens during redirect if base62 detected (`src/routes/term.tsx:27-34`)
+  - Base62 decoder preserves short prefixes without zero-padding (`src/utils/base62.ts:87-90`)
+
+**GraphQL ID Prefix Matching**: The query uses prefix matching with trailing wildcard for LIKE operator and sorts results by creation date:
 ```typescript
-{ id: `${id}%` }  // Prefix match in fetchTerm()
+// In fetchTerm()
+query GetTerm($id: String!) {
+  terms(
+    order_by: [{ created_at: asc }]
+    where: { id: { _like: $id } }
+  ) { ... }
+}
+
+// Called with: { id: `${id}%` }
 ```
 
-This enables partial ID matching (e.g., `/0x8c486fd3377` matches full ID starting with that prefix). If multiple terms match the prefix, a 404 is returned to prevent ambiguity.
+This enables partial ID matching (e.g., `/0x8c486fd3377` matches full IDs starting with that prefix). The `order_by: [{created_at: asc}]` ensures deterministic ordering - if multiple terms match, the oldest term (by creation date) is selected. This behavior differs between routes:
+- **Redirect route** (`/:id`): Takes first result, enabling convenient partial hex IDs
+- **Shortener route** (`/short`): Returns 404 if multiple results to enforce uniqueness
 
 **URL Parsing Flexibility**: The `extractIdFromUrl()` utility (`src/utils/urlParser.ts`) extracts IDs from various URL formats using regex patterns:
 - Portal URLs: `https://portal.intuition.systems/explore/atom/{id}`
@@ -86,7 +124,9 @@ This enables partial ID matching (e.g., `/0x8c486fd3377` matches full ID startin
 
 **Error Handling**: Returns `null` from `fetchTerm` on errors (no throwing), then routes return 404 pages. This treats missing data as valid 404 scenarios rather than 500 errors.
 
-**Ambiguity Prevention**: Routes return 404 if the GraphQL query returns more than one result. This ensures that partial IDs must be unique enough to match exactly one term.
+**Multiple Results Handling**: The two main routes handle multiple GraphQL results differently:
+- **Shortener route** (`/short`): Returns 404 if multiple results found. This enforces that full URLs from form submissions must uniquely identify one term.
+- **Redirect route** (`/:id`): Takes the first result sorted by `created_at: asc` (oldest term). This enables convenient partial hex IDs while maintaining deterministic behavior. For example, `/0x8c486fd3377` will always return the same term (the oldest one matching that prefix).
 
 **Fallback Values**: Metadata extraction uses fallbacks for nullable GraphQL fields:
 - Atom title: `atom.label || 'Intuition'`
@@ -110,8 +150,11 @@ This enables partial ID matching (e.g., `/0x8c486fd3377` matches full ID startin
 - `ErrorPage.tsx` - 404 error page
 
 **Utils** (`src/utils/`): Utility functions for common operations.
+- `prefixFinder.ts` - Shortest prefix algorithm with smart character comparison to minimize API calls
 - `metadata.ts` - Extracts metadata from terms with automatic type detection
 - `urlParser.ts` - Parses IDs from various URL formats
+- `base62.ts` - Base62 encoding/decoding with BigInt support (preserves short prefixes without zero-padding)
+- `idDetector.ts` - ID format detection and validation (hex vs base62, supports 1+ char base62 IDs)
 - `env.ts` - Environment variable configuration
 
 **Services** (`src/services/`): External API interactions. GraphQL query is embedded as string constant (copied from `plans/query.graphql`).
@@ -196,3 +239,8 @@ Note: Platforms cache meta tags aggressively. Use these tools to refresh cache.
 **Changing portal URLs**: Update URL construction in `src/utils/metadata.ts` (single source of truth for both atoms and triples).
 
 **Modifying URL parsing**: Edit regex patterns in `src/utils/urlParser.ts` to support additional URL formats.
+
+**Adjusting prefix algorithm**: Modify constants in `src/utils/prefixFinder.ts` to tune performance:
+- `MIN_PREFIX_LEN` (default: 2) - Starting hex prefix length
+- `INCREMENT` (default: 2) - How much to increase prefix length on collisions
+- `MAX_ATTEMPTS` (default: 32) - Maximum API calls before falling back to full ID

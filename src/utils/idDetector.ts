@@ -17,8 +17,8 @@ export function isHexId(id: string): boolean {
  */
 export function isBase62Id(id: string): boolean {
   // Base62: only alphanumeric, case-sensitive, no 0x prefix
-  // Must be at least 10 chars to avoid false positives
-  const base62Regex = /^[0-9A-Za-z]{10,}$/
+  // Minimum 1 char (e.g., 0x00 → '0', 0x10 → 'G')
+  const base62Regex = /^[0-9A-Za-z]+$/
   return base62Regex.test(id)
 }
 

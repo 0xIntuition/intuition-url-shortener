@@ -6,6 +6,7 @@ import { extractMetadata } from '../utils/metadata.js'
 import { PreviewPage } from '../components/PreviewPage.js'
 import { ErrorPage } from '../components/ErrorPage.js'
 import { hexToBase62 } from '../utils/base62.js'
+import { findShortestPrefix } from '../utils/prefixFinder.js'
 
 export const shortenerRoute = new Hono()
 
@@ -112,9 +113,16 @@ shortenerRoute.post('/', async (c) => {
     return c.html(<ErrorPage />, 404)
   }
 
-  // Encode hex ID to base62
-  const base62Id = hexToBase62(term.id)
-  console.log(`Encoded hex ${term.id} → base62 ${base62Id}`)
+  // Find shortest unique prefix
+  const fullId = term.id
+  console.log(`Finding shortest unique prefix for ID: ${fullId}`)
+
+  const shortestPrefix = await findShortestPrefix(fullId)
+  console.log(`Shortest prefix found: ${shortestPrefix} (${shortestPrefix.length - 2} chars)`)
+
+  // Encode the shortest prefix to base62
+  const base62Id = hexToBase62(shortestPrefix)
+  console.log(`Encoded hex ${shortestPrefix} → base62 ${base62Id}`)
 
   // Generate short URL using base62 ID
   const baseUrl = new URL(c.req.url).origin

@@ -84,7 +84,8 @@ export function base62ToHex(base62Id: string): string {
     throw new Error('Decoded value exceeds 256 bits')
   }
 
-  // Convert to hex string and pad to 64 characters
-  const hexDigits = num.toString(16).padStart(64, '0')
+  // Convert to hex string without padding (preserves short prefixes)
+  // For short prefixes like '9LE' → '0x8c48', we don't want zero-padding
+  const hexDigits = num.toString(16)
   return '0x' + hexDigits
 }

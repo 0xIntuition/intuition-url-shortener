@@ -46,12 +46,6 @@ termRoute.get('/:id', async (c) => {
     return c.html(<ErrorPage />, 404)
   }
 
-  // Check for ambiguous match (multiple results)
-  if (data.terms.length > 1) {
-    console.log(`Ambiguous match: ${data.terms.length} results found for ID: ${hexId}`)
-    return c.html(<ErrorPage />, 404)
-  }
-
   const term = data.terms[0]
 
   // Extract metadata with automatic type detection
